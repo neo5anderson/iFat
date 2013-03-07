@@ -5,6 +5,8 @@
 来用这款软件来记录咱的体重变化吧，每小时的、每天的、每周的、每月的甚至  
 每年的，看看图表中的自己是如何克服地球引力一点一点瘦下来吧 =v=
 
+![iFat - web.png](https://raw.github.com/neo5simple/iFat/master/ic_launcher-web.png)
+
 软件名称上欢迎大伙来吐槽，愿大伙与肥肉相处愉快~
 
 ## 目的
