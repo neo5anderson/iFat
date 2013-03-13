@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="app_name">iFat</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+
+    <!-- profile -->
+    <string name="profile">用户信息</string>
+    <string name="create">+ 创建</string>
+    <string name="delete">- 删除</string>
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+
+    <!-- profile.create -->
+    <string name="profile_create_hint">没有用户记录，请先创建一个用户</string>
+    <string name="username">名称</string>
+    <string name="sex">性别</string>
+    <string name="style">类型</string>
+    <string name="color">颜色</string>
+
+    <!-- profile.delete -->
+    <string name="profile_delete_msg_formatter" formatted="false">您确定要删除 %s 的信息么？</string>
+
+    <!-- user.settings -->
+    <string name="user_info_formatter" formatted="false">欢迎 %s 回来</string>
+    <string name="user_add">添加</string>
+    <string name="user_compare">比较</string>
+    <string name="user_export">导出</string>
+    <string name="user_settings">设置</string>
+    <string name="not_available">暂时未提供该功能</string>
+
+    <!-- user.records -->
+    <string name="add_date_formatter" formatted="false">当前时间：%s</string>
+    <string name="weight">重量</string>
+    <string name="tag">标签</string>
+
+    <!-- user.chart -->
+    <string name="day">日</string>
+    <string name="week">周</string>
+    <string name="month">月</string>
+
+</resources>

@@ -1,8 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">iFat</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+
+    <!-- profile -->
+    <string name="profile">User Profile</string>
+    <string name="create">+ Create</string>
+    <string name="delete">- Delete</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- profile.create -->
+    <string name="profile_create_hint">No user infos, please create one</string>
+    <string name="username">Name</string>
+    <string name="sex">Sex</string>
+    <string name="style">Style</string>
+    <string name="color">Color</string>
+
+    <!-- profile.delete -->
+    <string name="profile_delete_msg_formatter" formatted="false">Are you sure to delete %s\'s profile?</string>
+
+    <!-- user.settings -->
+    <string name="user_info_formatter" formatted="false">Welcome %s back</string>
+    <string name="user_add">Add</string>
+    <string name="user_compare">Compare</string>
+    <string name="user_export">Export</string>
+    <string name="user_settings">Settings</string>
+    <string name="not_available">Function not available~</string>
+
+    <!-- user.records -->
+    <string name="add_date_formatter" formatted="false">Date: %s</string>
+    <string name="weight">Weight</string>
+    <string name="tag">Tag</string>
+
+    <!-- user.chart -->
+    <string name="day">Day</string>
+    <string name="week">Week</string>
+    <string name="month">Month</string>
 
 </resources>
