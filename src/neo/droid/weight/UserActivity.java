@@ -65,12 +65,19 @@ public class UserActivity extends Activity {
 							@Override
 							public void onClick(DialogInterface dialog,
 									int which) {
-								PrivateUtils
-										.execSQL("INSERT INTO tags(name) VALUES ('"
-												+ tagEditText.getText() + "')");
+								// [Neo] TODO tags
+								String tagString = tagEditText.getText()
+										.toString();
+								if (false == Strings.isEmpty(tagString)) {
+									PrivateUtils
+											.execSQL("INSERT INTO tags(name) VALUES ('"
+													+ tagEditText.getText()
+													+ "')");
+								}
+								
 								PrivateUtils
 										.execSQL("INSERT INTO records(user_id, weight, tag_id) VALUES ("
-												+ currentUserID
+												+ (currentUserID + 1)
 												+ ", "
 												+ weightEditText.getText()
 												+ ", last_insert_rowid())");

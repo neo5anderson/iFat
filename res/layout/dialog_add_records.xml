@@ -38,7 +38,9 @@
             android:id="@+id/add_tags"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/tag" />
+            android:imeOptions="actionDone"
+            android:hint="@string/tag"
+            android:singleLine="true" />
     </LinearLayout>
 
 </ScrollView>

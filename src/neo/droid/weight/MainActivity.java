@@ -22,14 +22,13 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
 	private ListView listView;
 	private SimpleAdapter adapter;
 
-	private TextView createTextView;
+	private TextView createTextView, hintTextView;
 	private EditText createUserName, createSex, createStyle, createColor;
 
 	private MyHandler handler;
@@ -41,6 +40,7 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		listView = (ListView) findViewById(R.id.profile_user_listview);
+		hintTextView = (TextView) findViewById(R.id.profile_without_user);
 		// [Neo] TODO ImageButton
 		createTextView = (TextView) findViewById(R.id.profile_create);
 
@@ -176,10 +176,8 @@ public class MainActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case WHAT_PROFILE_WITHOUT_USER:
-				Toast.makeText(MainActivity.this,
-						getString(R.string.profile_create_hint),
-						Toast.LENGTH_LONG).show();
 				listView.setVisibility(View.GONE);
+				hintTextView.setVisibility(View.VISIBLE);
 				break;
 
 			case WHAT_PROFILE_WITH_USER:
@@ -195,6 +193,8 @@ public class MainActivity extends Activity {
 					listView.setLayoutParams(params);
 				}
 
+				listView.setVisibility(View.VISIBLE);
+				hintTextView.setVisibility(View.GONE);
 				adapter.notifyDataSetChanged();
 				break;
 
@@ -232,6 +232,7 @@ public class MainActivity extends Activity {
 				handler.sendEmptyMessage(WHAT_PROFILE_WITHOUT_USER);
 			}
 
+			cursor.close();
 			PrivateUtils.DB_UTILS.close();
 		}
 	}

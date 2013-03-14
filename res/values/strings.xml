@@ -13,7 +13,7 @@
     <string name="cancel">Cancel</string>
 
     <!-- profile.create -->
-    <string name="profile_create_hint">No user infos, please create one</string>
+    <string name="profile_create_hint">No user in DB</string>
     <string name="username">Name</string>
     <string name="sex">Sex</string>
     <string name="style">Style</string>

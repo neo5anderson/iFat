@@ -13,7 +13,7 @@
     <string name="cancel">取消</string>
 
     <!-- profile.create -->
-    <string name="profile_create_hint">没有用户记录，请先创建一个用户</string>
+    <string name="profile_create_hint">数据库中无记录</string>
     <string name="username">名称</string>
     <string name="sex">性别</string>
     <string name="style">类型</string>

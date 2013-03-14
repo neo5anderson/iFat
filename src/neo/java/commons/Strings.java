@@ -69,11 +69,14 @@ public class Strings {
 	 */
 	public static void sysoutMaps(Map<String, String> map) {
 		String key = null;
+		StringBuilder stringBuilder = new StringBuilder();
 		Iterator<String> iterator = map.keySet().iterator();
 		while (iterator.hasNext()) {
 			key = iterator.next();
-			System.out.println(key + " => " + map.get(key));
+			stringBuilder.append(key + " => " + map.get(key) + ", ");
 		}
+
+		System.out.println(stringBuilder.toString() + "\n");
 	}
 
 	/**

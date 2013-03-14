@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
+        android:background="@drawable/border"
         android:orientation="vertical" >
 
         <ListView
@@ -28,15 +29,32 @@
             android:layout_height="150dp"
             android:cacheColorHint="#0000"
             android:divider="#0000"
-            android:dividerHeight="0dp" />
+            android:dividerHeight="0dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/profile_without_user"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="@string/profile_create_hint"
+            android:textColor="#AD7FA8"
+            android:textSize="28sp" />
+
+        <View
+            android:id="@+id/profile_hr"
+            android:layout_width="220dp"
+            android:layout_height="2dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="15dp"
+            android:layout_marginTop="15dp"
+            android:background="#555" />
 
         <TextView
             android:id="@+id/profile_create"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:paddingBottom="25dp"
-            android:paddingTop="20dp"
             android:text="@string/create"
             android:textColor="#AD7FA8"
             android:textSize="24sp" />
