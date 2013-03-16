@@ -39,5 +39,7 @@
     <string name="day">日</string>
     <string name="week">周</string>
     <string name="month">月</string>
+    <string name="infos">信息</string>
+    <string name="pick_day">选个日子呗</string>
 
 </resources>

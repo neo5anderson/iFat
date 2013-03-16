@@ -47,7 +47,6 @@
         android:id="@+id/chart_view"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:background="#C0C00C0C"
         android:layout_weight="5" />
 
     <LinearLayout
@@ -58,11 +57,16 @@
 
         <TextView
             android:id="@+id/chart_compare"
-            android:layout_width="0dp"
+            android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:text="@string/user_compare"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:text="@string/infos"
             android:textColor="#FFF"
             android:textSize="26sp" />
     </LinearLayout>

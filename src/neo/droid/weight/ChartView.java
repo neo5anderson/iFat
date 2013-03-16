@@ -17,14 +17,17 @@ import android.view.View;
 public class ChartView extends View {
 
 	private int chartRange;
-	private Paint chartLinePaint, titlePaint, fingerInPaint, fingerOutPaint,
-			dummyPaint;
+	private Paint chartLinePaint, chartTitlePaint, fingerInPaint,
+			fingerOutPaint, checkOutPaint, dummyPaint;
 
 	private Point currentPos, fingerPos;
-	private boolean isShowFinger, isCancelAutoHide;
+	private boolean isShowFinger, isCancelAutoHide, isCached, isErrShowed;
+	private List<Map<String, String>> list;
+	private int index;
 	private float fingerOutR;
 
 	private MyHanlder hanlder;
+	private Handler layoutHandler;
 
 	private static final int WHAT_INVALIDATE = 0x01;
 	private static final int WHAT_AUTO_HIDE_FINGER = 0x51;
@@ -47,20 +50,24 @@ public class ChartView extends View {
 	private final float chartHTitleXFactor = 1.8f;
 	private final float chartHTitleYFactor = 1.6f;
 
+	private final float chartXHeightFactor = 0.5f;
+
 	private float chartLeftPix = 0;
 	private float chartTopPix = 0;
 	private float chartRightPix = 0;
 	private float chartBottomPix = 0;
 
-	public ChartView(Context context) {
+	private float[] weights;
+	private float maxWeight, minWeight, avgWeight;
+	private String dateString;
+
+	public ChartView(Context context, Handler handler) {
 		super(context);
+		layoutHandler = handler;
 
 		currentPos = new Point();
 		fingerPos = new Point();
-
 		hanlder = new MyHanlder();
-		isShowFinger = false;
-		chartRange = RANGE_DAY;
 
 		chartLinePaint = new Paint();
 		chartLinePaint.setAntiAlias(true);
@@ -78,11 +85,16 @@ public class ChartView extends View {
 		fingerOutPaint.setSubpixelText(true);
 		fingerOutPaint.setColor(0xC000ACFF);
 
-		titlePaint = new Paint();
-		titlePaint.setAntiAlias(true);
-		titlePaint.setSubpixelText(true);
-		titlePaint.setTextSize(12);
-		titlePaint.setColor(Color.LTGRAY);
+		checkOutPaint = new Paint();
+		checkOutPaint.setAntiAlias(true);
+		checkOutPaint.setSubpixelText(true);
+		checkOutPaint.setColor(0xFFFF4644);
+
+		chartTitlePaint = new Paint();
+		chartTitlePaint.setAntiAlias(true);
+		chartTitlePaint.setSubpixelText(true);
+		chartTitlePaint.setTextSize(12);
+		chartTitlePaint.setColor(Color.LTGRAY);
 
 		dummyPaint = new Paint();
 		dummyPaint.setAntiAlias(true);
@@ -90,12 +102,18 @@ public class ChartView extends View {
 		dummyPaint.setStrokeWidth(1);
 		dummyPaint.setColor(Color.RED);
 
+		dateString = Strings.getCurrentTimeString("yyyy-MM-dd ");
+		switchRange(RANGE_DAY);
 	}
 
 	public void switchRange(int range) {
+		isCached = false;
+		isShowFinger = false;
+		isErrShowed = false;
+		index = -1;
+
 		boolean isValiade = true;
 
-		// [Neo] TODO
 		switch (range) {
 		case RANGE_DAY:
 			break;
@@ -116,6 +134,13 @@ public class ChartView extends View {
 		} else {
 			chartRange = RANGE_DAY;
 		}
+
+		invalidate();
+	}
+
+	public void pickDate(String dateString) {
+		this.dateString = dateString;
+		switchRange(RANGE_DAY);
 	}
 
 	@Override
@@ -152,24 +177,133 @@ public class ChartView extends View {
 
 		switch (chartRange) {
 		case RANGE_DAY:
-			canvas.drawText("weight", chartLeftPix * chartVTitleXFactor,
-					chartTopPix * chartVTitleYFactor, titlePaint);
 			canvas.drawText("hours", width - chartLeftPix * chartHTitleXFactor,
-					height - chartTopPix * chartHTitleYFactor, titlePaint);
-
-			String dateString = Strings.getCurrentTimeString("yyyy-MM-dd ");
-
-			List<Map<String, String>> list = PrivateUtils
-					.selectDB2list("SELECT records.weight, tags.name FROM records INNER JOIN tags ON records.tag_id = tags.id WHERE records.time BETWEEN '"
-							+ dateString
-							+ "00:00:00' AND '"
-							+ dateString
-							+ "23:59:59'");
-
-			for (int i = 0; i < list.size(); i++) {
-				Strings.sysoutMaps(list.get(i));
+					height - chartTopPix * chartHTitleYFactor, chartTitlePaint);
+			float perHLength = (chartRightPix - chartLeftPix) / 27.0f;
+			for (int i = 2; i < 26; i++) {
+				canvas.drawLine(chartLeftPix + perHLength * i, chartBottomPix
+						- perHLength * chartXHeightFactor, chartLeftPix
+						+ perHLength * i, chartBottomPix, chartLinePaint);
 			}
+
+			canvas.drawText("12a", chartLeftPix + perHLength * 1, height
+					- perHLength, chartTitlePaint);
+			canvas.drawText("12p", chartLeftPix + perHLength * 13, height
+					- perHLength, chartTitlePaint);
+			canvas.drawText("11p", chartLeftPix + perHLength * 24, height
+					- perHLength, chartTitlePaint);
+
+			canvas.drawText("weight", chartLeftPix * chartVTitleXFactor,
+					chartTopPix * chartVTitleYFactor, chartTitlePaint);
+			float perVLength = (chartBottomPix - chartTopPix) / 10.0f;
+			for (int i = 1; i < 10; i++) {
+				canvas.drawLine(chartLeftPix, chartTopPix + perVLength * i,
+						chartLeftPix + 5, chartTopPix + perVLength * i,
+						chartLinePaint);
+			}
+
+			if (null == list || false == isCached) {
+				list = PrivateUtils
+						.selectDB2list("SELECT records.weight as weight, (strftime('%s', records.time) - strftime('%s', '"
+								+ dateString
+								+ "') ) AS time, tags.name as tag FROM records INNER JOIN tags ON records.tag_id = tags.id WHERE records.time BETWEEN '"
+								+ dateString
+								+ "00:00:00' AND '"
+								+ dateString
+								+ "23:59:59' ORDER BY records.time ASC");
+				isCached = true;
+			}
+
 			// [Neo] TODO
+			if (null != list) {
+				weights = new float[list.size()];
+				int[] times = new int[list.size()];
+
+				maxWeight = Float.parseFloat(list.get(0).get("weight"));
+				minWeight = maxWeight;
+				avgWeight = maxWeight;
+
+				for (int i = 0; i < list.size(); i++) {
+					weights[i] = Float.parseFloat(list.get(i).get("weight"));
+					times[i] = Integer.parseInt(list.get(i).get("time"));
+
+					avgWeight += weights[i];
+
+					if (maxWeight < weights[i]) {
+						maxWeight = weights[i];
+					}
+					if (minWeight > weights[i]) {
+						minWeight = weights[i];
+					}
+				}
+
+				avgWeight /= list.size();
+
+				int maxW = (int) Math.ceil(maxWeight);
+				int minW = (int) Math.floor(minWeight);
+
+				canvas.drawText(String.format("%d.0", maxW), 0, chartTopPix
+						+ perVLength * 1.2f, chartTitlePaint);
+				canvas.drawText(
+						String.format("%.1f", (maxW - minW) / 2.0f + minW), 0,
+						chartTopPix + perVLength * 5.2f, chartTitlePaint);
+				canvas.drawText(String.format("%d.0", minW), 0, chartTopPix
+						+ perVLength * 9.2f, chartTitlePaint);
+
+				if (false != isShowFinger
+						&& currentPos.x > chartLeftPix + perHLength * 2
+						&& currentPos.x < chartLeftPix + perHLength * 26) {
+					int currentTime = (int) ((currentPos.x - chartLeftPix - perHLength * 2)
+							/ perHLength * 3600);
+					int minLength = Math.abs(currentTime - times[0]);
+					index = 0;
+					for (int i = 1; i < times.length; i++) {
+						if (minLength > Math.abs(currentTime - times[i])) {
+							index = i;
+							minLength = Math.abs(currentTime - times[i]);
+						}
+					}
+
+					layoutHandler
+							.sendMessage(layoutHandler.obtainMessage(
+									ChartActivity.WHAT_CHECK_POINT,
+									0,
+									0,
+									Strings.getFormattedTimeString(
+											times[index], "HH:mm:ss")
+											+ " - "
+											+ weights[index] + "kg"));
+				}
+
+				for (int i = 0; i < list.size(); i++) {
+					Paint paint = fingerInPaint;
+					float dotx = chartLeftPix + perHLength
+							* (2 + times[i] / 3600.0f);
+					float doty = chartTopPix
+							+ perVLength
+							* (1 + 8 * (1 - (weights[i] - minW) / (maxW - minW)));
+
+					if (i == index) {
+						paint = checkOutPaint;
+						float y = 0;
+						if (doty < height / 3) {
+							y = doty + perVLength;
+						} else {
+							y = doty - perVLength * 0.5f;
+						}
+						canvas.drawText(list.get(i).get("tag"), dotx
+								- perHLength, y, chartTitlePaint);
+					}
+
+					canvas.drawCircle(dotx, doty, fingerOutR / 3, paint);
+				}
+			} else {
+				if (false == isErrShowed) {
+					isErrShowed = true;
+					layoutHandler
+							.sendEmptyMessage(ChartActivity.WHAT_ERR_NO_DATA);
+				}
+			}
 
 			break;
 
@@ -188,9 +322,10 @@ public class ChartView extends View {
 			canvas.drawCircle(fingerPos.x, fingerPos.y, fingerOutR,
 					fingerOutPaint);
 			canvas.drawCircle(fingerPos.x, fingerPos.y,
-					Math.max(fingerOutR / 4.0f, 2), fingerInPaint);
+					Math.max(fingerOutR / 4, 2), fingerInPaint);
 		}
 
+		PrivateUtils.DB_UTILS.close();
 	}
 
 	@Override
@@ -198,8 +333,8 @@ public class ChartView extends View {
 		switch (event.getAction()) {
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_MOVE:
+			// redrawFinger(false);
 			currentPos.set((int) event.getX(), (int) event.getY());
-
 			if (currentPos.x < chartLeftPix) {
 				fingerPos.x = (int) chartLeftPix;
 			} else if (currentPos.x > chartRightPix) {
@@ -215,9 +350,9 @@ public class ChartView extends View {
 			} else {
 				fingerPos.y = currentPos.y;
 			}
-			isShowFinger = true;
+
 			isCancelAutoHide = true;
-			invalidate();
+			redrawFinger(true);
 			break;
 
 		case MotionEvent.ACTION_UP:
@@ -230,8 +365,25 @@ public class ChartView extends View {
 			break;
 		}
 
-		// [Neo] TODO
 		return true;
+	}
+
+	public void compare() {
+		if (null != weights && weights.length > 0) {
+			layoutHandler.sendMessage(layoutHandler.obtainMessage(
+					ChartActivity.WHAT_SHOW_COMPARE, 0, 0, String.format(
+							"Max: %.1fkg, Min: %.1fkg, AVG: %.1fkg", maxWeight,
+							minWeight, avgWeight)));
+		}
+	}
+
+	private void redrawFinger(boolean isShowFinger) {
+		this.isShowFinger = isShowFinger;
+		invalidate();
+		// [Neo] TODO 局部刷新的效率也未必很高
+		// int dirtyR = (int) Math.ceil(fingerOutR);
+		// invalidate(fingerPos.x - dirtyR, fingerPos.y - dirtyR, fingerPos.x
+		// + dirtyR, fingerPos.y + dirtyR);
 	}
 
 	class MyHanlder extends Handler {
@@ -245,8 +397,7 @@ public class ChartView extends View {
 
 			case WHAT_AUTO_HIDE_FINGER:
 				if (false == isCancelAutoHide) {
-					isShowFinger = false;
-					invalidate();
+					redrawFinger(false);
 				}
 				break;
 

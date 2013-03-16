@@ -16,7 +16,7 @@ public class CoverGallery extends Gallery {
 	private static boolean isCircleMode = false;
 	/** 是否开启半透明模式 */
 	private static boolean isAlphaMode = false;
-
+	
 	/** 类似于 Canvas 画布 */
 	private Camera camera = new Camera();
 

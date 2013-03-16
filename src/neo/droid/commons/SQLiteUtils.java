@@ -78,7 +78,8 @@ public class SQLiteUtils {
 			}
 			resultList.add(map);
 		}
-
+		
+		cursor.close();
 		return resultList;
 	}
 

@@ -19,6 +19,8 @@ public class PrivateUtils {
 
 	protected static SQLiteUtils DB_UTILS;
 
+	private static boolean IS_DB_INIT = false;
+
 	private static String DB_NAME;
 	private static Map<String, String> TABLES_MAP;
 	private static final int DB_VERSION = 1;
@@ -46,12 +48,16 @@ public class PrivateUtils {
 
 	public static void openDB() {
 		DB_UTILS.open(CONTEXT, DB_NAME, TABLES_MAP, DB_VERSION);
+
+		if (false == IS_DB_INIT) {
+			IS_DB_INIT = true;
+			DB_UTILS.execSQL("INSERT OR IGNORE INTO tags(id, name) VALUES (0, '')");
+		}
 	}
 
 	public static void execSQL(String sql) {
 		openDB();
 		DB_UTILS.execSQL(sql);
-		// [Neo] TODO 延迟一段时间关闭
 	}
 
 	public static Cursor selectDB(String sql) {

@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -89,6 +90,12 @@ public class Strings {
 	public static String getCurrentTimeString(String pattern) {
 		SimpleDateFormat format = new SimpleDateFormat(pattern);
 		return format.format(new Date());
+	}
+
+	public static String getFormattedTimeString(int timeStamp, String pattern) {
+		SimpleDateFormat format = new SimpleDateFormat(pattern);
+		format.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return format.format(timeStamp * 1000);
 	}
 
 	/**
