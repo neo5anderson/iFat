@@ -12,23 +12,20 @@ import android.content.Context;
 import android.database.Cursor;
 
 public class PrivateUtils {
+//	protected static int USER_LISTVIEW_HEIGHT;
 	protected static Context CONTEXT;
-
-	protected static int USER_LISTVIEW_HEIGHT;
-	protected static List<Map<String, String>> USER_LIST;
-
 	protected static SQLiteUtils DB_UTILS;
-
 	private static boolean IS_DB_INIT = false;
+	protected static List<Map<String, String>> USER_LIST;
 
 	private static String DB_NAME;
 	private static Map<String, String> TABLES_MAP;
-	private static final int DB_VERSION = 1;
-	private static final String SCHEMA_USER = "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, sex TEXT, style_id INTEGER, color_id INTEGER";
-	private static final String SCHEMA_STYLE = "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT";
-	private static final String SCHEMA_COLOR = "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT";
+	private static final int DB_VERSION = 5;
+	private static final String SCHEMA_STYLE = "id INTEGER PRIMARY KEY, name TEXT, value TEXT";
+	private static final String SCHEMA_COLOR = "id INTEGER PRIMARY KEY, name TEXT, value INTEGER";
+	private static final String SCHEMA_USER = "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, sex INTEGER, style_id INTEGER, color_id INTEGER";
+	private static final String SCHEMA_TAGS = "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, user_id INTEGER";
 	private static final String SCHEMA_RECORDS = "id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, weight REAL, tag_id INTEGER DEFAULT 0, time DATETIME DEFAULT(datetime('now', 'localtime'))";
-	private static final String SCHEMA_TAGS = "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT";
 
 	public PrivateUtils(Context context) {
 		ResUtils.make(context);
@@ -51,7 +48,27 @@ public class PrivateUtils {
 
 		if (false == IS_DB_INIT) {
 			IS_DB_INIT = true;
-			DB_UTILS.execSQL("INSERT OR IGNORE INTO tags(id, name) VALUES (0, '')");
+			DB_UTILS.execSQL("INSERT OR IGNORE INTO tags(id, name, user_id) VALUES (0, '', 0)");
+
+			// [Neo] TODO 替换方案和颜色
+			DB_UTILS.execSQL("INSERT OR IGNORE INTO style(id, name, value) VALUES (1, '"
+					+ CONTEXT.getString(R.string.standrad) + "', 'dummy')");
+
+			DB_UTILS.execSQL("INSERT OR IGNORE INTO color(id, name, value) VALUES (1, '"
+					+ CONTEXT.getString(R.string.orange)
+					+ "', "
+					+ 0xEE5500
+					+ ")");
+			DB_UTILS.execSQL("INSERT OR IGNORE INTO color(id, name, value) VALUES (2, '"
+					+ CONTEXT.getString(R.string.purple)
+					+ "', "
+					+ 0xCC54EF
+					+ ")");
+			DB_UTILS.execSQL("INSERT OR IGNORE INTO color(id, name, value) VALUES (3, '"
+					+ CONTEXT.getString(R.string.green)
+					+ "', "
+					+ 0x66DD00
+					+ ")");
 		}
 	}
 

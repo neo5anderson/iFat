@@ -13,14 +13,14 @@
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/username" />
+            android:text="@string/user" />
 
         <EditText
             android:id="@+id/create_username"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/username"
-            android:imeOptions="actionNext"
+            android:hint="@string/user"
+            android:imeOptions="actionDone"
             android:singleLine="true" />
 
         <TextView
@@ -28,37 +28,30 @@
             android:layout_height="wrap_content"
             android:text="@string/sex" />
 
-        <EditText
+        <Spinner
             android:id="@+id/create_sex"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/sex"
-            android:imeOptions="actionDone"
-            android:singleLine="true" />
+            android:layout_height="wrap_content" />
 
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/style" />
 
-        <EditText
+        <Spinner
             android:id="@+id/create_style"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/style"
-            android:singleLine="true" />
+            android:layout_height="wrap_content" />
 
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/color" />
 
-        <EditText
+        <Spinner
             android:id="@+id/create_color"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/color"
-            android:singleLine="true" />
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
 </ScrollView>

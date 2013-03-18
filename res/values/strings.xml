@@ -14,10 +14,16 @@
 
     <!-- profile.create -->
     <string name="profile_create_hint">No user in DB</string>
-    <string name="username">Name</string>
+    <string name="user">Name</string>
     <string name="sex">Sex</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
     <string name="style">Style</string>
     <string name="color">Color</string>
+    <string name="orange">Orange</string>
+    <string name="purple">Purple</string>
+    <string name="green">Green</string>
+    <string name="toast_empty_username">Username cannot be empty</string>
 
     <!-- profile.delete -->
     <string name="profile_delete_msg_formatter" formatted="false">Are you sure to delete %s\'s profile?</string>
@@ -28,11 +34,13 @@
     <string name="user_compare">Compare</string>
     <string name="user_export">Export</string>
     <string name="user_settings">Settings</string>
+    <string name="settings_infos">Custom your style and color</string>
     <string name="not_available">Function not available~</string>
 
     <!-- user.records -->
     <string name="add_date_formatter" formatted="false">Date: %s</string>
     <string name="weight">Weight</string>
+    <string name="err_without_weight">Error, please input your weight</string>
     <string name="tag">Tag</string>
 
     <!-- user.chart -->
@@ -40,5 +48,9 @@
     <string name="week">Week</string>
     <string name="month">Month</string>
     <string name="infos">Infos</string>
+    <string name="pick_day">Pick a day up</string>
+    <string name="delete_me">Delete me?</string>
+    <string name="delete_me_msg">Press "Confirm" to delete the checkout dot, otherwise "Cancel"</string>
+    <string name="toast_without_data" formatted="false">No data on %s</string>
 
 </resources>

@@ -2,12 +2,16 @@ package neo.droid.weight;
 
 import java.util.Date;
 
+import neo.java.commons.Strings;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
@@ -47,20 +51,23 @@ public class ChartActivity extends Activity {
 		chartLayout.removeAllViews();
 		chartLayout.addView(chartView);
 
+		dayPickedString = Strings.getCurrentTimeString("yyyy-MM-dd");
+
 		dayTextView.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				Date date = new Date();
+				// [Neo] 我偷懒我自豪
 				Dialog dialog = new DatePickerDialog(ChartActivity.this,
 						new DatePickerDialog.OnDateSetListener() {
-
 							@Override
 							public void onDateSet(DatePicker view, int year,
 									int monthOfYear, int dayOfMonth) {
 								dayPickedString = String.format(
-										"%04d-%02d-%02d ", year,
+										"%04d-%02d-%02d", year,
 										monthOfYear + 1, dayOfMonth);
+								// [Neo] 修改图表日期
 								chartView.pickDate(dayPickedString);
 							}
 						}, date.getYear() + 1900, date.getMonth(), date
@@ -89,6 +96,7 @@ public class ChartActivity extends Activity {
 			}
 		});
 
+		// [Neo] 姑且叫他 compare 吧，现阶段就是用来显示更多信息用了
 		compareTextView.setOnClickListener(new View.OnClickListener() {
 
 			@Override
@@ -96,13 +104,62 @@ public class ChartActivity extends Activity {
 				if (false == isCompareShowing) {
 					formerInfos = compareTextView.getText().toString();
 					isCompareShowing = true;
+					// [Neo] 12s 后恢复显示的内容
 					handler.sendEmptyMessageDelayed(WHAT_RESTORE_INFOS,
-							9 * 1000);
+							12 * 1000);
+					// [Neo] 生成详细内容
 					chartView.compare();
 				}
 			}
 		});
 
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_VOLUME_UP:
+			// [Neo] 移动至上一个点
+			chartView.moveTarget(-1);
+			return true;
+
+		case KeyEvent.KEYCODE_VOLUME_DOWN:
+			// [Neo] 移动至下一个点
+			chartView.moveTarget(+1);
+			return true;
+
+		case KeyEvent.KEYCODE_DEL:
+			new AlertDialog.Builder(ChartActivity.this)
+					.setTitle(R.string.delete_me)
+					.setMessage(R.string.delete_me_msg)
+					.setPositiveButton(R.string.confirm,
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface arg0,
+										int arg1) {
+									compareTextView
+											.setText(getString(R.string.infos));
+									chartView.deleteTarget();
+								}
+							})
+					.setNegativeButton(R.string.cancel,
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									// [Neo] Empty
+
+								}
+							}).create().show();
+			return true;
+
+		default:
+			break;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	class MyHandler extends Handler {
@@ -126,9 +183,10 @@ public class ChartActivity extends Activity {
 				break;
 
 			case WHAT_ERR_NO_DATA:
-				Toast.makeText(ChartActivity.this,
-						"No data on " + dayPickedString, Toast.LENGTH_LONG)
-						.show();
+				Toast.makeText(
+						ChartActivity.this,
+						String.format(getString(R.string.toast_without_data),
+								dayPickedString), Toast.LENGTH_LONG).show();
 				break;
 
 			default:

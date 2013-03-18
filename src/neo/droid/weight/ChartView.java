@@ -16,50 +16,66 @@ import android.view.View;
 
 public class ChartView extends View {
 
-	private int chartRange;
-	private Paint chartLinePaint, chartTitlePaint, fingerInPaint,
-			fingerOutPaint, checkOutPaint, dummyPaint;
-
-	private Point currentPos, fingerPos;
-	private boolean isShowFinger, isCancelAutoHide, isCached, isErrShowed;
-	private List<Map<String, String>> list;
+	// [Neo] 检出点索引
 	private int index;
+
+	// [Neo] 手指外圈半径
 	private float fingerOutR;
 
-	private MyHanlder hanlder;
+	// [Neo] 存储体重的各种数值
+	private float[] weights;
+	private float maxWeight, minWeight, avgWeight;
+
+	// [Neo] 时间值
+	private String dateString;
+
+	// [Neo] 各种画笔
+	private Paint chartLinePaint, chartTitlePaint, fingerInPaint,
+			fingerOutPaint, checkOutPaint, dotPaint;
+
+	// [Neo] 手指点击位置、绘制手指点击位置
+	private Point currentPos, fingerPos;
+	private boolean isShowFinger, isCancelAutoHide, isCached, isErrShowed;
+
+	// [Neo] 查询结果集
+	private List<Map<String, String>> list;
+
 	private Handler layoutHandler;
 
+	private MyHanlder hanlder;
 	private static final int WHAT_INVALIDATE = 0x01;
 	private static final int WHAT_AUTO_HIDE_FINGER = 0x51;
 
+	// [Neo] 图表显示范围
+	private int chartRange;
 	public static final int RANGE_DAY = 0x01;
 	public static final int RANGE_WEEK = 0x02;
 	public static final int RANGE_MONTH = 0x03;
 
-	private final float chartLeftFactor = 0.1f;
-	private final float chartRightFactor = 0.95f;
-	private final float chartTopFactor = 0.1f;
-	private final float chartBottomFactor = 0.9f;
+	// [Neo] 各种位置变量因子
+	private final float chartLeftFactor = 0.07f;
+	private final float chartRightFactor = 0.93f;
+	private final float chartTopFactor = 0.07f;
+	private final float chartBottomFactor = 0.93f;
 
-	private final float chartArrowWidthFactor = 0.5f;
-	private final float chartArrowHeightFactor = 0.85f;
+	private final float chartArrowWidthFactor = 0.35f;
+	private final float chartArrowHeightFactor = 0.6f;
 
 	private final float chartVTitleXFactor = 1.2f;
 	private final float chartVTitleYFactor = 0.8f;
 
-	private final float chartHTitleXFactor = 1.8f;
+	private final float chartTitleSizeFactor = 1.65f;
+	private final float chartHTitleXFactor = 3f;
 	private final float chartHTitleYFactor = 1.6f;
 
-	private final float chartXHeightFactor = 0.5f;
+	private final float chartXHeightFactor = 0.2f;
+	private final float chartYWidthFactor = 0.2f;
 
+	// [Neo] 实际表格坐标基数
 	private float chartLeftPix = 0;
 	private float chartTopPix = 0;
 	private float chartRightPix = 0;
 	private float chartBottomPix = 0;
-
-	private float[] weights;
-	private float maxWeight, minWeight, avgWeight;
-	private String dateString;
 
 	public ChartView(Context context, Handler handler) {
 		super(context);
@@ -72,8 +88,7 @@ public class ChartView extends View {
 		chartLinePaint = new Paint();
 		chartLinePaint.setAntiAlias(true);
 		chartLinePaint.setSubpixelText(true);
-		chartLinePaint.setStrokeWidth(1);
-		chartLinePaint.setColor(Color.LTGRAY);
+		chartLinePaint.setColor(Color.DKGRAY);
 
 		fingerInPaint = new Paint();
 		fingerInPaint.setAntiAlias(true);
@@ -88,22 +103,20 @@ public class ChartView extends View {
 		checkOutPaint = new Paint();
 		checkOutPaint.setAntiAlias(true);
 		checkOutPaint.setSubpixelText(true);
-		checkOutPaint.setColor(0xFFFF4644);
+		checkOutPaint.setColor(Color.RED);
 
 		chartTitlePaint = new Paint();
 		chartTitlePaint.setAntiAlias(true);
 		chartTitlePaint.setSubpixelText(true);
-		chartTitlePaint.setTextSize(12);
 		chartTitlePaint.setColor(Color.LTGRAY);
 
-		dummyPaint = new Paint();
-		dummyPaint.setAntiAlias(true);
-		dummyPaint.setSubpixelText(true);
-		dummyPaint.setStrokeWidth(1);
-		dummyPaint.setColor(Color.RED);
+		dotPaint = new Paint();
+		dotPaint.setAntiAlias(true);
+		dotPaint.setSubpixelText(true);
+		dotPaint.setColor(UserActivity.CURRENT_COLOR);
 
-		dateString = Strings.getCurrentTimeString("yyyy-MM-dd ");
 		switchRange(RANGE_DAY);
+		dateString = Strings.getCurrentTimeString("yyyy-MM-dd");
 	}
 
 	public void switchRange(int range) {
@@ -143,6 +156,19 @@ public class ChartView extends View {
 		switchRange(RANGE_DAY);
 	}
 
+	public void moveTarget(int offset) {
+		if (null != list) {
+			index = (list.size() + index + offset) % list.size();
+			invalidate();
+		}
+	}
+
+	public void deleteTarget() {
+		PrivateUtils.execSQL("DELETE FROM records WHERE id = "
+				+ list.get(index).get("id"));
+		switchRange(RANGE_DAY);
+	}
+
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
@@ -152,22 +178,26 @@ public class ChartView extends View {
 
 		// [Neo] 计算实际图表边界坐标
 		chartLeftPix = (chartLeftPix > 1) ? chartLeftPix : (Math.max(width
-				* chartLeftFactor, 10));
+				* chartLeftFactor, 25));
 		chartRightPix = (chartRightPix > 1) ? chartRightPix : (Math.min(width
-				* chartRightFactor, width - 5));
+				* chartRightFactor, width - 10));
 		chartTopPix = (chartTopPix > 1) ? chartTopPix : (Math.max(height
-				* chartTopFactor, 10));
+				* chartTopFactor, 20));
 		chartBottomPix = (chartBottomPix > 1) ? chartBottomPix : (Math.min(
-				height * chartBottomFactor, height - 10));
+				height * chartBottomFactor, height - 20));
 
+		// [Neo] 计算手指半径、箭头长宽
 		fingerOutR = Math.min(width - chartRightPix, height - chartBottomPix);
 		float arrowWidth = fingerOutR * chartArrowWidthFactor;
 		float arrowHeight = fingerOutR * chartArrowHeightFactor;
 
+		// [Neo] 指定线宽
+		chartLinePaint.setStrokeWidth(fingerOutR / 10);
+
 		// [Neo] 绘制图表边界
 		canvas.drawLines(new float[] { chartLeftPix, chartTopPix, chartLeftPix,
-				chartBottomPix, chartLeftPix, chartBottomPix, chartRightPix,
-				chartBottomPix, chartRightPix - arrowHeight,
+				chartBottomPix + fingerOutR / 8, chartLeftPix, chartBottomPix,
+				chartRightPix, chartBottomPix, chartRightPix - arrowHeight,
 				chartBottomPix - arrowWidth, chartRightPix, chartBottomPix,
 				chartRightPix, chartBottomPix, chartRightPix - arrowHeight,
 				chartBottomPix + arrowWidth, chartLeftPix - arrowWidth,
@@ -177,12 +207,15 @@ public class ChartView extends View {
 
 		switch (chartRange) {
 		case RANGE_DAY:
-			canvas.drawText("hours", width - chartLeftPix * chartHTitleXFactor,
-					height - chartTopPix * chartHTitleYFactor, chartTitlePaint);
+			// [Neo] 静态 24 小时横坐标
 			float perHLength = (chartRightPix - chartLeftPix) / 27.0f;
+			chartTitlePaint.setTextSize(perHLength * chartTitleSizeFactor);
+			canvas.drawText("hours", chartRightPix - perHLength
+					* chartHTitleXFactor, height - chartTopPix
+					* chartHTitleYFactor, chartTitlePaint);
 			for (int i = 2; i < 26; i++) {
 				canvas.drawLine(chartLeftPix + perHLength * i, chartBottomPix
-						- perHLength * chartXHeightFactor, chartLeftPix
+						- chartTopPix * chartXHeightFactor, chartLeftPix
 						+ perHLength * i, chartBottomPix, chartLinePaint);
 			}
 
@@ -193,35 +226,49 @@ public class ChartView extends View {
 			canvas.drawText("11p", chartLeftPix + perHLength * 24, height
 					- perHLength, chartTitlePaint);
 
+			// [Neo] 纵坐标
+			float perVLength = (chartBottomPix - chartTopPix) / 10.0f;
 			canvas.drawText("weight", chartLeftPix * chartVTitleXFactor,
 					chartTopPix * chartVTitleYFactor, chartTitlePaint);
-			float perVLength = (chartBottomPix - chartTopPix) / 10.0f;
 			for (int i = 1; i < 10; i++) {
 				canvas.drawLine(chartLeftPix, chartTopPix + perVLength * i,
-						chartLeftPix + 5, chartTopPix + perVLength * i,
-						chartLinePaint);
+						chartLeftPix * (1 + chartYWidthFactor), chartTopPix
+								+ perVLength * i, chartLinePaint);
 			}
 
+			// [Neo] 多画三天线，哈
+			canvas.drawLines(new float[] { chartLeftPix,
+					chartTopPix + perVLength, chartRightPix - perHLength,
+					chartTopPix + perVLength, chartLeftPix,
+					chartTopPix + perVLength * 5, chartRightPix - perHLength,
+					chartTopPix + perVLength * 5, chartLeftPix,
+					chartTopPix + perVLength * 9, chartRightPix - perHLength,
+					chartTopPix + perVLength * 9, }, chartLinePaint);
+
+			// [Neo] 是否要更新结果集
 			if (null == list || false == isCached) {
-				list = PrivateUtils
-						.selectDB2list("SELECT records.weight as weight, (strftime('%s', records.time) - strftime('%s', '"
-								+ dateString
-								+ "') ) AS time, tags.name as tag FROM records INNER JOIN tags ON records.tag_id = tags.id WHERE records.time BETWEEN '"
-								+ dateString
-								+ "00:00:00' AND '"
-								+ dateString
-								+ "23:59:59' ORDER BY records.time ASC");
 				isCached = true;
+				// [Neo] 这个 SQL 真心的长
+				list = PrivateUtils
+						.selectDB2list("SELECT records.id AS id, records.weight as weight, (strftime('%s', records.time) - strftime('%s', '"
+								+ dateString
+								+ "')) AS time, tags.name as tag FROM records INNER JOIN tags ON records.tag_id = tags.id WHERE records.time BETWEEN '"
+								+ dateString
+								+ " 00:00:00' AND '"
+								+ dateString
+								+ " 23:59:59' "
+								+ "AND records.user_id = "
+								+ UserActivity.CURRENT_USER_ID
+								+ " ORDER BY records.time ASC");
 			}
 
-			// [Neo] TODO
 			if (null != list) {
 				weights = new float[list.size()];
 				int[] times = new int[list.size()];
 
+				avgWeight = 0;
 				maxWeight = Float.parseFloat(list.get(0).get("weight"));
 				minWeight = maxWeight;
-				avgWeight = maxWeight;
 
 				for (int i = 0; i < list.size(); i++) {
 					weights[i] = Float.parseFloat(list.get(i).get("weight"));
@@ -242,6 +289,12 @@ public class ChartView extends View {
 				int maxW = (int) Math.ceil(maxWeight);
 				int minW = (int) Math.floor(minWeight);
 
+				// [Neo] 确保最大值与最小值至少有个 1kg 的容差
+				if (maxW == minW) {
+					maxW += 1;
+				}
+
+				// [Neo] 绘制纵坐标数值
 				canvas.drawText(String.format("%d.0", maxW), 0, chartTopPix
 						+ perVLength * 1.2f, chartTitlePaint);
 				canvas.drawText(
@@ -250,6 +303,7 @@ public class ChartView extends View {
 				canvas.drawText(String.format("%d.0", minW), 0, chartTopPix
 						+ perVLength * 9.2f, chartTitlePaint);
 
+				// [Neo] 判断是否需要绘制检出点
 				if (false != isShowFinger
 						&& currentPos.x > chartLeftPix + perHLength * 2
 						&& currentPos.x < chartLeftPix + perHLength * 26) {
@@ -257,13 +311,17 @@ public class ChartView extends View {
 							/ perHLength * 3600);
 					int minLength = Math.abs(currentTime - times[0]);
 					index = 0;
+					// [Neo] 找到那个最近的有效点索引
 					for (int i = 1; i < times.length; i++) {
 						if (minLength > Math.abs(currentTime - times[i])) {
 							index = i;
 							minLength = Math.abs(currentTime - times[i]);
 						}
 					}
+				}
 
+				// [Neo] 如果有检出点，在界面上更新其测试时间和数值
+				if (index > -1) {
 					layoutHandler
 							.sendMessage(layoutHandler.obtainMessage(
 									ChartActivity.WHAT_CHECK_POINT,
@@ -275,29 +333,42 @@ public class ChartView extends View {
 											+ weights[index] + "kg"));
 				}
 
+				// [Neo] 那么，就把记录都显示到图表上面吧
 				for (int i = 0; i < list.size(); i++) {
-					Paint paint = fingerInPaint;
+					Paint paint = dotPaint;
+
+					// [Neo] 坐标计算的代码稍微复杂了点，原理还是比较容易理解的
 					float dotx = chartLeftPix + perHLength
 							* (2 + times[i] / 3600.0f);
 					float doty = chartTopPix
 							+ perVLength
 							* (1 + 8 * (1 - (weights[i] - minW) / (maxW - minW)));
 
+					// [Neo] 如果当前的点是检出点，那就特殊化一下下
 					if (i == index) {
 						paint = checkOutPaint;
+
+						// [Neo] 绘制标签这里有技巧哦，高过多少要在下面输出
 						float y = 0;
 						if (doty < height / 3) {
 							y = doty + perVLength;
 						} else {
 							y = doty - perVLength * 0.5f;
 						}
-						canvas.drawText(list.get(i).get("tag"), dotx
-								- perHLength, y, chartTitlePaint);
+
+						String tagString = list.get(i).get("tag");
+						// [Neo] 检出点太靠右可能会影响标签显示，那就往左边来点
+						int offset = (times[i] > 14 * 3600) ? (tagString
+								.length() * 4 / 5) : (tagString.length() / 2);
+						canvas.drawText(tagString, dotx - perHLength * offset,
+								y, chartTitlePaint);
 					}
 
+					// [Neo] 正常绘制这些记录点
 					canvas.drawCircle(dotx, doty, fingerOutR / 3, paint);
 				}
 			} else {
+				// [Neo] 告诉用户数据库里面没记录，要自己添加的，亲
 				if (false == isErrShowed) {
 					isErrShowed = true;
 					layoutHandler
@@ -308,16 +379,18 @@ public class ChartView extends View {
 			break;
 
 		case RANGE_WEEK:
+			// [Neo] TODO
 			break;
 
 		case RANGE_MONTH:
+			// [Neo] TODO
 			break;
 
 		default:
 			break;
 		}
 
-		// [Neo] TODO 绘制手指
+		// [Neo] 手指圆点，个人比较喜欢这个颜色，尺寸还有待商榷
 		if (false != isShowFinger) {
 			canvas.drawCircle(fingerPos.x, fingerPos.y, fingerOutR,
 					fingerOutPaint);
@@ -325,6 +398,7 @@ public class ChartView extends View {
 					Math.max(fingerOutR / 4, 2), fingerInPaint);
 		}
 
+		// [Neo] 关闭数据库，很有必要
 		PrivateUtils.DB_UTILS.close();
 	}
 
@@ -333,7 +407,10 @@ public class ChartView extends View {
 		switch (event.getAction()) {
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_MOVE:
+			// [Neo] 发现局部更新并没有减少很多垃圾，瓶颈兴许不在这儿
 			// redrawFinger(false);
+
+			// [Neo] 除了绝对坐标外，手指圆圈的位置要稍微加工一下才会好看点
 			currentPos.set((int) event.getX(), (int) event.getY());
 			if (currentPos.x < chartLeftPix) {
 				fingerPos.x = (int) chartLeftPix;
@@ -351,16 +428,19 @@ public class ChartView extends View {
 				fingerPos.y = currentPos.y;
 			}
 
+			// [Neo] a little trick
 			isCancelAutoHide = true;
 			redrawFinger(true);
 			break;
 
 		case MotionEvent.ACTION_UP:
 			isCancelAutoHide = false;
+			// [Neo] 延迟手指 1s 后消失，哈
 			hanlder.sendEmptyMessageDelayed(WHAT_AUTO_HIDE_FINGER, 1 * 1000);
 			break;
 
 		default:
+			// [Neo] 理论上不容易触发这个事件
 			System.out.println("other " + event.getX() + ", " + event.getY());
 			break;
 		}
@@ -380,7 +460,7 @@ public class ChartView extends View {
 	private void redrawFinger(boolean isShowFinger) {
 		this.isShowFinger = isShowFinger;
 		invalidate();
-		// [Neo] TODO 局部刷新的效率也未必很高
+		// [Neo] 局部刷新未必会提供整体的效率，暂时注释吧
 		// int dirtyR = (int) Math.ceil(fingerOutR);
 		// invalidate(fingerPos.x - dirtyR, fingerPos.y - dirtyR, fingerPos.x
 		// + dirtyR, fingerPos.y + dirtyR);

@@ -14,10 +14,17 @@
 
     <!-- profile.create -->
     <string name="profile_create_hint">数据库中无记录</string>
-    <string name="username">名称</string>
+    <string name="user">用户</string>
     <string name="sex">性别</string>
+    <string name="male">男</string>
+    <string name="female">女</string>
     <string name="style">类型</string>
+    <string name="standrad">标准</string>
     <string name="color">颜色</string>
+    <string name="orange">橘色</string>
+    <string name="purple">紫色</string>
+    <string name="green">绿色</string>
+    <string name="toast_empty_username">用户名称不要为空哦</string>
 
     <!-- profile.delete -->
     <string name="profile_delete_msg_formatter" formatted="false">您确定要删除 %s 的信息么？</string>
@@ -28,11 +35,13 @@
     <string name="user_compare">比较</string>
     <string name="user_export">导出</string>
     <string name="user_settings">设置</string>
+    <string name="settings_infos">请根据您需求修改图标样式和颜色</string>
     <string name="not_available">暂时未提供该功能</string>
 
     <!-- user.records -->
     <string name="add_date_formatter" formatted="false">当前时间：%s</string>
     <string name="weight">重量</string>
+    <string name="err_without_weight">错误，请您正确输入重量</string>
     <string name="tag">标签</string>
 
     <!-- user.chart -->
@@ -41,5 +50,8 @@
     <string name="month">月</string>
     <string name="infos">信息</string>
     <string name="pick_day">选个日子呗</string>
+    <string name="delete_me">删除我？</string>
+    <string name="delete_me_msg">点击 “确定” 删除当前检出点，不想删除那就点击 “取消” 呗</string>
+    <string name="toast_without_data" formatted="false">%s: 没有体重记录</string>
 
 </resources>
