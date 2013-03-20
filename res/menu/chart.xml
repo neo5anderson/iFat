@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_chart_delete"
+        android:orderInCategory="101"
+        android:title="@string/delete"/>
+    
+    <item
+        android:id="@+id/menu_chart_follow"
+        android:orderInCategory="101"
+        android:title="@string/follow"/>
+    
+    <item
+        android:id="@+id/menu_chart_recur"
+        android:orderInCategory="101"
+        android:title="@string/recur"/>
+
+</menu>

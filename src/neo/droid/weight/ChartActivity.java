@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
@@ -29,6 +31,7 @@ public class ChartActivity extends Activity {
 	private String formerInfos;
 	private String dayPickedString;
 	private boolean isCompareShowing;
+	private boolean hasCheckoutPoint;
 
 	public static final int WHAT_CHECK_POINT = 0x01;
 	public static final int WHAT_SHOW_COMPARE = 0x02;
@@ -46,6 +49,7 @@ public class ChartActivity extends Activity {
 		chartLayout = (LinearLayout) findViewById(R.id.chart_view);
 		compareTextView = (TextView) findViewById(R.id.chart_compare);
 
+		hasCheckoutPoint = false;
 		handler = new MyHandler();
 		chartView = new ChartView(ChartActivity.this, handler);
 		chartLayout.removeAllViews();
@@ -130,30 +134,7 @@ public class ChartActivity extends Activity {
 			return true;
 
 		case KeyEvent.KEYCODE_DEL:
-			new AlertDialog.Builder(ChartActivity.this)
-					.setTitle(R.string.delete_me)
-					.setMessage(R.string.delete_me_msg)
-					.setPositiveButton(R.string.confirm,
-							new DialogInterface.OnClickListener() {
-
-								@Override
-								public void onClick(DialogInterface arg0,
-										int arg1) {
-									compareTextView
-											.setText(getString(R.string.infos));
-									chartView.deleteTarget();
-								}
-							})
-					.setNegativeButton(R.string.cancel,
-							new DialogInterface.OnClickListener() {
-
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									// [Neo] Empty
-
-								}
-							}).create().show();
+			showDeleteDailog();
 			return true;
 
 		default:
@@ -162,12 +143,81 @@ public class ChartActivity extends Activity {
 		return super.onKeyDown(keyCode, event);
 	}
 
+	private void showDeleteDailog() {
+		new AlertDialog.Builder(ChartActivity.this)
+				.setTitle(R.string.delete_me)
+				.setMessage(R.string.delete_me_msg)
+				.setPositiveButton(R.string.confirm,
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface arg0, int arg1) {
+								compareTextView
+										.setText(getString(R.string.infos));
+								chartView.deleteTarget();
+							}
+						})
+				.setNegativeButton(R.string.cancel,
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								// [Neo] Empty
+
+							}
+						}).create().show();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.chart, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (false == hasCheckoutPoint) {
+			if (null != menu.findItem(R.id.menu_chart_delete)) {
+				menu.removeItem(R.id.menu_chart_delete);
+			}
+		} else {
+			menu.clear();
+			getMenuInflater().inflate(R.menu.chart, menu);
+		}
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menu_chart_delete:
+			showDeleteDailog();
+			break;
+
+		case R.id.menu_chart_follow:
+			// [Neo] TODO
+			System.out.println("follow");
+			break;
+
+		case R.id.menu_chart_recur:
+			// [Neo] TODO
+			System.out.println("recur");
+			break;
+
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
 	class MyHandler extends Handler {
 
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case WHAT_CHECK_POINT:
+				hasCheckoutPoint = true;
 				isCompareShowing = false;
 				formerInfos = (String) msg.obj;
 				compareTextView.setText(formerInfos);

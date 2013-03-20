@@ -7,6 +7,7 @@ import neo.java.commons.Strings;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.os.Handler;
@@ -29,9 +30,11 @@ public class ChartView extends View {
 	// [Neo] 时间值
 	private String dateString;
 
+	// private Path path = new Path();
+
 	// [Neo] 各种画笔
 	private Paint chartLinePaint, chartTitlePaint, fingerInPaint,
-			fingerOutPaint, checkOutPaint, dotPaint;
+			fingerOutPaint, checkOutPaint, dotPaint, dashPaint;
 
 	// [Neo] 手指点击位置、绘制手指点击位置
 	private Point currentPos, fingerPos;
@@ -115,6 +118,12 @@ public class ChartView extends View {
 		dotPaint.setSubpixelText(true);
 		dotPaint.setColor(UserActivity.CURRENT_COLOR);
 
+		dashPaint = new Paint();
+		dashPaint.setStyle(Paint.Style.STROKE);
+		dashPaint.setColor(Color.LTGRAY);
+		dashPaint.setPathEffect(new DashPathEffect(new float[] { 8, 5, 8, 5 },
+				1));
+
 		switchRange(RANGE_DAY);
 		dateString = Strings.getCurrentTimeString("yyyy-MM-dd");
 	}
@@ -163,10 +172,15 @@ public class ChartView extends View {
 		}
 	}
 
-	public void deleteTarget() {
-		PrivateUtils.execSQL("DELETE FROM records WHERE id = "
-				+ list.get(index).get("id"));
-		switchRange(RANGE_DAY);
+	public boolean deleteTarget() {
+		if (index > -1) {
+			PrivateUtils.execSQL("DELETE FROM records WHERE id = "
+					+ list.get(index).get("id"));
+			switchRange(RANGE_DAY);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@Override
@@ -193,6 +207,7 @@ public class ChartView extends View {
 
 		// [Neo] 指定线宽
 		chartLinePaint.setStrokeWidth(fingerOutR / 10);
+		dashPaint.setStrokeWidth(fingerOutR / 10);
 
 		// [Neo] 绘制图表边界
 		canvas.drawLines(new float[] { chartLeftPix, chartTopPix, chartLeftPix,
@@ -236,7 +251,7 @@ public class ChartView extends View {
 								+ perVLength * i, chartLinePaint);
 			}
 
-			// [Neo] 多画三天线，哈
+			// [Neo] 多画三条线，哈
 			canvas.drawLines(new float[] { chartLeftPix,
 					chartTopPix + perVLength, chartRightPix - perHLength,
 					chartTopPix + perVLength, chartLeftPix,
@@ -294,6 +309,23 @@ public class ChartView extends View {
 					maxW += 1;
 				}
 
+				// [Neo] 绘制平均虚线以及各点所需的坐标变量
+				float dotx, doty;
+				doty = chartTopPix + perVLength
+						* (1 + 8 * (1 - (avgWeight - minW) / (maxW - minW)));
+
+				// [Neo] Path 用法举例，哈，reset 很重要
+				// path.reset();
+				// path.moveTo(chartLeftPix, doty);
+				// path.lineTo(chartRightPix - perHLength, doty);
+				// canvas.drawPath(path, dashPaint);
+
+				canvas.drawLine(chartLeftPix, doty, chartRightPix - perHLength,
+						doty, dashPaint);
+				canvas.drawText(String.format("AVG: %.1f", avgWeight),
+						chartRightPix - perHLength * 7, doty - perHLength,
+						chartTitlePaint);
+
 				// [Neo] 绘制纵坐标数值
 				canvas.drawText(String.format("%d.0", maxW), 0, chartTopPix
 						+ perVLength * 1.2f, chartTitlePaint);
@@ -335,38 +367,44 @@ public class ChartView extends View {
 
 				// [Neo] 那么，就把记录都显示到图表上面吧
 				for (int i = 0; i < list.size(); i++) {
-					Paint paint = dotPaint;
-
 					// [Neo] 坐标计算的代码稍微复杂了点，原理还是比较容易理解的
-					float dotx = chartLeftPix + perHLength
-							* (2 + times[i] / 3600.0f);
-					float doty = chartTopPix
+					dotx = chartLeftPix + perHLength * (2 + times[i] / 3600.0f);
+					doty = chartTopPix
 							+ perVLength
 							* (1 + 8 * (1 - (weights[i] - minW) / (maxW - minW)));
 
-					// [Neo] 如果当前的点是检出点，那就特殊化一下下
-					if (i == index) {
-						paint = checkOutPaint;
+					if (i != index) {
+						// [Neo] 正常绘制这些记录点
+						canvas.drawCircle(dotx, doty, fingerOutR / 3, dotPaint);
+					}
+				}
 
-						// [Neo] 绘制标签这里有技巧哦，高过多少要在下面输出
-						float y = 0;
-						if (doty < height / 3) {
-							y = doty + perVLength;
-						} else {
-							y = doty - perVLength * 0.5f;
-						}
+				// [Neo] 绘制检出点
+				if (index > -1) {
+					dotx = chartLeftPix + perHLength
+							* (2 + times[index] / 3600.0f);
+					doty = chartTopPix
+							+ perVLength
+							* (1 + 8 * (1 - (weights[index] - minW)
+									/ (maxW - minW)));
 
-						String tagString = list.get(i).get("tag");
-						// [Neo] 检出点太靠右可能会影响标签显示，那就往左边来点
-						int offset = (times[i] > 14 * 3600) ? (tagString
-								.length() * 4 / 5) : (tagString.length() / 2);
-						canvas.drawText(tagString, dotx - perHLength * offset,
-								y, chartTitlePaint);
+					// [Neo] 绘制标签这里有技巧哦，高过多少要在下面输出
+					float y = 0;
+					if (doty < height / 3) {
+						y = doty + perVLength;
+					} else {
+						y = doty - perVLength * 0.5f;
 					}
 
-					// [Neo] 正常绘制这些记录点
-					canvas.drawCircle(dotx, doty, fingerOutR / 3, paint);
+					String tagString = list.get(index).get("tag");
+					// [Neo] 检出点太靠右可能会影响标签显示，那就往左边来点
+					int offset = (times[index] > 14 * 3600) ? (tagString
+							.length() * 4 / 5) : (tagString.length() / 2);
+					canvas.drawText(tagString, dotx - perHLength * offset, y,
+							chartTitlePaint);
+					canvas.drawCircle(dotx, doty, fingerOutR / 3, checkOutPaint);
 				}
+
 			} else {
 				// [Neo] 告诉用户数据库里面没记录，要自己添加的，亲
 				if (false == isErrShowed) {

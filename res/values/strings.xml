@@ -9,6 +9,8 @@
     <string name="profile">User Profile</string>
     <string name="create">+ Create</string>
     <string name="delete">- Delete</string>
+    <string name="follow">&amp; Follow</string>
+    <string name="recur">! Recur</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
 

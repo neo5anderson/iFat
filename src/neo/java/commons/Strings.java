@@ -92,6 +92,15 @@ public class Strings {
 		return format.format(new Date());
 	}
 
+	/**
+	 * 从时间戳转指定格式化日期
+	 * 
+	 * @param timeStamp
+	 *            时间戳
+	 * @param pattern
+	 *            简单日期格式模式
+	 * @return 格式化后的字符串对象
+	 */
 	public static String getFormattedTimeString(int timeStamp, String pattern) {
 		SimpleDateFormat format = new SimpleDateFormat(pattern);
 		format.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -267,8 +276,8 @@ public class Strings {
 
 			while ((null != (perLine = stdout.readLine()))
 					|| (null != (perLine = stderr.readLine()))) {
-				if (isEmpty(perLine)) {
-					sBuilder.append(perLine);
+				if (false == isEmpty(perLine)) {
+					sBuilder.append(perLine + "\n");
 				}
 			}
 
