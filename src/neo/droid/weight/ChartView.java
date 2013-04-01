@@ -354,6 +354,7 @@ public class ChartView extends View {
 
 				// [Neo] 如果有检出点，在界面上更新其测试时间和数值
 				if (index > -1) {
+					index = (list.size() + index) % list.size();
 					layoutHandler
 							.sendMessage(layoutHandler.obtainMessage(
 									ChartActivity.WHAT_CHECK_POINT,

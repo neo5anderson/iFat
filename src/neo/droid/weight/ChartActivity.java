@@ -155,6 +155,7 @@ public class ChartActivity extends Activity {
 								compareTextView
 										.setText(getString(R.string.infos));
 								chartView.deleteTarget();
+								chartView.moveTarget(0);
 							}
 						})
 				.setNegativeButton(R.string.cancel,
